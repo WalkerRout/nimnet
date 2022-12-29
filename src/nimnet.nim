@@ -81,10 +81,9 @@ proc predict(nn: var Network, X: Matrix[float64]): Matrix[float64] =
   nn.forward(X)
   result = nn.layers[nn.L].a
 
-proc fit(nn: var Network, Xs, Ys: Matrix[float64], epochs: int = 500, alpha: float64 = 0.05) =
+proc fit(nn: var Network, Xs, Ys: Matrix[float64], epochs: int = 500, alpha: float64 = 0.05): float64 =
   for epoch in countup(0, epochs-1):
-    var c = 0.0
-    var n_c = 0
+    var c = 0
 
     for i in countup(0, Xs.dim[0] - 1):
       let x = Xs.row(i).asMatrix(Xs.dim[1], 1)
@@ -95,15 +94,13 @@ proc fit(nn: var Network, Xs, Ys: Matrix[float64], epochs: int = 500, alpha: flo
       nn.delta(y)
       nn.gradient_descent(alpha)
 
-      c += nn.e[0, 0]
-
       let y_pred = nn.predict(x)
       let res = y_pred[0, 0] > 0.5
       if res == y[0, 0].bool:
-        n_c += 1
+        c += 1
 
-    #echo "Iteration: ", epoch
-    #echo "Accuracy: ", (n_c / Xs.dim[0]) * 100.0
+    # accuracy
+    result = c / Xs.dim[0]
 
 proc main() =
   let xs = matrix(@[
@@ -124,12 +121,12 @@ proc main() =
   ])
 
   var nn = network(@[3, 4, 2])
-  nn.fit(xs, ys, alpha=0.1)
+  let accuracy = nn.fit(xs, ys, alpha=0.1)
 
   let row = 2
-
   let sample = xs.row(row).asMatrix(xs.dim[1], 1)
 
+  echo "Training accuracy ", accuracy*100, "%"
   echo "Probabilities: ", nn.predict(sample).t
   echo "Predicted result: ", (nn.predict(sample) + 0.5).floor.t.asVector
   echo "Expected result: ", ys.row(row)
