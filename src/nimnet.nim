@@ -1,7 +1,6 @@
 
-import math
 import neo
-
+import math
 import std/random
 
 import util
