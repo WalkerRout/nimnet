@@ -2,8 +2,7 @@
 import math
 import neo
 
-import std/parsecsv
-import std/strutils
+import std/random
 
 import util
 
@@ -108,19 +107,20 @@ proc fit(nn: var Network, Xs, Ys: Matrix[float64], epochs: int = 500, alpha: flo
 proc main() =
   # specific invariant required;
   # single newline at end of each file
-  let xs = read_matrix("data/Xs.csv")
-  let ys = read_matrix("data/Ys.csv")
+  let xs = read_matrix("data/Iris-Xs.csv")
+  let ys = read_matrix("data/Iris-Ys.csv")
 
-  var nn = network(@[xs.row(0).len, 4, ys.row(0).len])
-  let accuracy = nn.fit(xs, ys, alpha=0.1)
+  var nn = network(@[xs.row(0).len, 10, 12, ys.row(0).len])
+  let accuracy = nn.fit(xs, ys, epochs=1000, alpha=0.01)
 
-  let row = 2
+  let row = rand(xs.dim[0])
   let sample = xs.row(row).asMatrix(xs.dim[1], 1)
 
   echo "Training accuracy ", accuracy * 100, "%"
+  echo "Testing on row #", row, " : ", xs.row(row)
   echo "Probabilities: ", nn.predict(sample).t
-  echo "Predicted result: ", (nn.predict(sample) + 0.5).floor.t.asVector
   echo "Expected result: ", ys.row(row)
 
 when isMainModule:
+  randomize()
   main()
