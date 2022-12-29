@@ -6,10 +6,10 @@ import util
 
 type
   Layer = object of RootObj
-    W: Matrix[float64]
-    b: Matrix[float64]
-    z: Matrix[float64]
-    a: Matrix[float64]
+    W:  Matrix[float64]
+    b:  Matrix[float64]
+    z:  Matrix[float64]
+    a:  Matrix[float64]
     dW: Matrix[float64]
     db: Matrix[float64]
     dz: Matrix[float64]
@@ -17,8 +17,8 @@ type
   Network = object of RootObj
     L: int
     n: seq[int]
-    layers: seq[Layer]
     e: Matrix[float64]
+    layers: seq[Layer]
 
 proc network(architecture: seq[int]): Network =
   result.L = architecture.len - 1
