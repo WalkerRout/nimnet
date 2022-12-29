@@ -81,7 +81,7 @@ proc predict(nn: var Network, X: Matrix[float64]): Matrix[float64] =
   nn.forward(X)
   result = nn.layers[nn.L].a
 
-proc fit(nn: var Network, Xs, Ys: Matrix[float64], epochs: int = 100, alpha: float64 = 0.01) =
+proc fit(nn: var Network, Xs, Ys: Matrix[float64], epochs: int = 500, alpha: float64 = 0.05) =
   for epoch in countup(0, epochs-1):
     var c = 0.0
     var n_c = 0
@@ -107,10 +107,11 @@ proc fit(nn: var Network, Xs, Ys: Matrix[float64], epochs: int = 100, alpha: flo
 
 proc main() =
   let xs = matrix(@[
-    @[0.0, 0.0],
-    @[0.0, 1.0],
-    @[1.0, 0.0],
-    @[1.0, 1.0],
+    @[0.0, 0.0, 0.0],
+    @[0.0, 0.0, 1.0],
+    @[0.0, 1.0, 0.0],
+    @[1.0, 0.0, 0.0],
+    @[1.0, 1.0, 1.0],
   ])
 
   let ys = matrix(@[
@@ -118,11 +119,12 @@ proc main() =
     @[0.0, 1.0],
     @[1.0, 0.0],
     @[1.0, 0.0],
+    @[1.0, 0.0],
     @[0.0, 1.0],
   ])
 
-  var nn = network(@[2, 4, 2])
-  nn.fit(xs, ys, 500, 0.1)
+  var nn = network(@[3, 4, 2])
+  nn.fit(xs, ys, alpha=0.1)
 
   let row = 2
 
