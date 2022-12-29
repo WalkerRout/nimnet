@@ -2,6 +2,8 @@
 import neo
 import math
 import sequtils
+import std/parsecsv
+import std/strutils
 
 proc sigmoid(x: float64): float64 =
   result = 1 / (1 + (-x).exp)
@@ -51,3 +53,24 @@ proc find_if*[T](s: Vector[T], pred: proc(x: T): bool): int =
     if pred(x):
       result = i
       break
+
+proc read_matrix*(path: string): Matrix[float64] = 
+  var p: CsvParser
+  var d: seq[seq[float64]]
+
+  p.open(path)
+  p.readHeaderRow() # skip column names
+
+  # for each row
+  while p.readRow():
+    var r: seq[float64]
+    # fill a sequence with elements in the row
+    for col in items(p.headers):
+      let entry = p.rowEntry(col).strip
+      if entry != "":
+        r.add(entry.parseFloat.float64)
+    # add the sequence to the result so far
+    d.add(r)
+
+  p.close()
+  result = makeMatrix(d.len, d[0].len, proc(i, j: int): float64 = result = d[i][j])
