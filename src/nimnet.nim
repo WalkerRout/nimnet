@@ -13,6 +13,7 @@ type
     dW: Matrix[float64]
     db: Matrix[float64]
     dz: Matrix[float64]
+
   Network = object of RootObj
     L: int
     n: seq[int]
@@ -42,21 +43,27 @@ proc network(architecture: seq[int]): Network =
 
 proc forward(nn: var Network, X: Matrix[float64]) = 
   nn.layers[0].a = X
-  for l in countup(1, nn.L):
+
+  for l in countup(1, nn.L - 1):
     var curr = addr nn.layers[l]
     curr.z = (curr.W * nn.layers[l - 1].a) + curr.b
     curr.a = activation(curr.z)
 
+  var curr = addr nn.layers[nn.L]
+  curr.z = (curr.W * nn.layers[nn.L - 1].a) + curr.b
+  curr.a = activation_last(curr.z)
+
 proc error(nn: var Network, y: Matrix[float64]) =
   var last = addr nn.layers[nn.L]
-  nn.e = -1.0 * (y * last.a.ln) + (1.0 - y) * (1.0 - last.a).ln
+  let index = find_if[float64](y.asVector, proc(x: float64): bool = result = x == 1.0)
+  nn.e = matrix(@[@[-1.0 * last.a.asVector[index].ln]])
 
 proc delta(nn: var Network, y: Matrix[float64]) =
-  let last = addr nn.layers[nn.L]
+  var last = addr nn.layers[nn.L]
 
   last.dz = last.a - y
   last.dW = last.dz * nn.layers[nn.L - 1].a.t
-  last.db = last.dz
+  last.db = last.dz # works out to just be last.dz for a single sample
 
   for l in countdown(nn.L - 1, 1):
     let curr = addr nn.layers[l]
@@ -95,33 +102,35 @@ proc fit(nn: var Network, Xs, Ys: Matrix[float64], epochs: int = 100, alpha: flo
       if res == y[0, 0].bool:
         n_c += 1
 
-    echo "Iteration: ", epoch
-    echo "Accuracy:", (n_c / Xs.dim[0]) * 100.0
+    #echo "Iteration: ", epoch
+    #echo "Accuracy: ", (n_c / Xs.dim[0]) * 100.0
 
 proc main() =
   let xs = matrix(@[
-    @[0.0,   0.0],
-    @[0.0,   100.0],
-    @[100.0, 0.0],
-    @[100.0, 100.0],
-    @[100.0, 100.0],
+    @[0.0, 0.0],
+    @[0.0, 1.0],
+    @[1.0, 0.0],
+    @[1.0, 1.0],
   ])
 
   let ys = matrix(@[
-    @[0.0],
-    @[1.0],
-    @[1.0],
-    @[0.0],
-    @[0.0],
+    # ON   OFF
+    @[0.0, 1.0],
+    @[1.0, 0.0],
+    @[1.0, 0.0],
+    @[0.0, 1.0],
   ])
 
-  var nn = network(@[2, 24, 1])
-  nn.fit(xs, ys, 1000, 0.01)
+  var nn = network(@[2, 4, 2])
+  nn.fit(xs, ys, 500, 0.1)
 
-  let sample = matrix(@[@[0.0, 100.0]]).t
-  let threshold = 0.5
-  echo nn.predict(sample), " => ", (nn.predict(sample) + 1 - threshold).floor
+  let row = 2
+
+  let sample = xs.row(row).asMatrix(xs.dim[1], 1)
+
+  echo "Probabilities: ", nn.predict(sample).t
+  echo "Predicted result: ", (nn.predict(sample) + 0.5).floor.t.asVector
+  echo "Expected result: ", ys.row(row)
 
 when isMainModule:
   main()
-
