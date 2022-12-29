@@ -108,8 +108,8 @@ proc fit(nn: var Network, Xs, Ys: Matrix[float64], epochs: int = 500, alpha: flo
 proc main() =
   # specific invariant required;
   # single newline at end of each file
-  let xs = read_matrix("Xs.csv")
-  let ys = read_matrix("Ys.csv")
+  let xs = read_matrix("data/Xs.csv")
+  let ys = read_matrix("data/Ys.csv")
 
   var nn = network(@[xs.row(0).len, 4, ys.row(0).len])
   let accuracy = nn.fit(xs, ys, alpha=0.1)
