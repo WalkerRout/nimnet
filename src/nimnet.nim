@@ -104,7 +104,7 @@ proc fit(nn: var Network, Xs, Ys: Matrix[float64], epochs: int = 500, alpha: flo
     result = c / Xs.dim[0]
 
 proc main() =
-  # specific invariant required;
+  # invariant;
   # single newline at end of each file
   let xs = read_matrix("data/Iris-Xs.csv")
   let ys = read_matrix("data/Iris-Ys.csv")
